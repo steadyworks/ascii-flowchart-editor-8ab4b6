@@ -198,12 +198,6 @@ function generateAscii(nodes: FlowNode[], connections: Connection[]): string {
       for (let y = sy; y !== midY; y += vstep) setChar(sx, y, '|')
       const hstep = sx < tx ? 1 : sx > tx ? -1 : 0
       if (hstep !== 0) {
-        for (let x = sx; x !== tx; x += hstep) setChar(midY, x, '-')
-        // fix: rows vs cols swap — redo
-      }
-      // Actually: setChar(col, row, char) — sx/tx are cols, sy/ty are rows
-      if (hstep !== 0) {
-        // clear the incorrect writes and redo
         for (let x = sx; x !== tx; x += hstep) setChar(x, midY, '-')
       }
       const vstep2 = midY < ty ? 1 : -1
@@ -258,10 +252,11 @@ export default function App() {
 
   function addNode(type: NodeType) {
     const id = newId()
-    // Stagger new nodes so they don't all stack
-    const offset = nodes.length * 20
-    const defaultX = type === 'diamond' ? 100 + offset : 80 + offset
-    const defaultY = type === 'diamond' ? 80 + offset : 80 + offset
+    // 2-column grid: col 0 (x=80) left, col 1 (x=350) right; rows spaced 170px apart
+    const col = nodes.length % 2
+    const row = Math.floor(nodes.length / 2)
+    const defaultX = col === 0 ? 80 : 350
+    const defaultY = 80 + row * 170
     setNodes(prev => [...prev, { id, type, x: defaultX, y: defaultY, label: '' }])
   }
 
@@ -501,17 +496,18 @@ export default function App() {
                 {/* Shape */}
                 {node.type === 'rectangle' && (
                   <rect x={0} y={0} width={w} height={h} rx={4}
-                    fill="#f8fafc" stroke="#475569" strokeWidth={2} />
+                    fill="#f8fafc" stroke="#475569" strokeWidth={2} style={{ pointerEvents: 'none' }} />
                 )}
                 {node.type === 'diamond' && (
                   <polygon
                     points={`${w/2},0 ${w},${h/2} ${w/2},${h} 0,${h/2}`}
                     fill="#fefce8" stroke="#a16207" strokeWidth={2}
+                    style={{ pointerEvents: 'none' }}
                   />
                 )}
                 {node.type === 'oval' && (
                   <ellipse cx={w/2} cy={h/2} rx={w/2} ry={h/2}
-                    fill="#f0fdf4" stroke="#166534" strokeWidth={2} />
+                    fill="#f0fdf4" stroke="#166534" strokeWidth={2} style={{ pointerEvents: 'none' }} />
                 )}
 
                 {/* Label */}
